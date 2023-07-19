@@ -146,7 +146,7 @@ pub fn fromPlugin(
 //#region Object presence checks within a descriptor
 
 /// Checks if `Plugin` is in the list of plugins present in this descriptor.
-fn hasPlugin(
+pub fn hasPlugin(
 	comptime self: Descriptor,
 	comptime Plugin: type
 ) bool {
@@ -154,48 +154,88 @@ fn hasPlugin(
 }
 
 /// Checks if `Component` is in the list of components present in this descriptor.
-fn hasComponent(
+pub fn hasComponent(
 	comptime self: Descriptor,
 	comptime Component: type
 ) bool {
-	return std.mem.indexOfScalar(type, self.components, Component) != null;
+	return self.getComponentIndex(Component) != null;
 }
 
 /// Checks if `Resource` is in the list of resources present in this descriptor.
-fn hasResource(
+pub fn hasResource(
 	comptime self: Descriptor,
 	comptime Resource: type
 ) bool {
-	return std.mem.indexOfScalar(type, self.resources, Resource) != null;
+	return self.getResourceIndex(Resource) != null;
 }
 
 /// Checks if `Event` is in the list of events present in this descriptor.
-fn hasEvent(
+pub fn hasEvent(
 	comptime self: Descriptor,
 	comptime Event: type
 ) bool {
-	return std.mem.indexOfScalar(type, self.events, Event) != null;
+	return self.getEventIndex(Event) != null;
 }
 
 /// Checks if `archetype` is in the list of archetypes present in this descriptor.
-fn hasArchetype(
+pub fn hasArchetype(
 	comptime self: Descriptor,
 	comptime archetype: []const type,
 ) bool {
-	for( self.architypes ) |arch| {
-		if( std.mem.eql(type, arch, archetype) )
-			return true;
-	}
-
-	return false;
+	return self.getArchetypeIndex(archetype) != null;
 }
 
 /// Checks if `stage` is in the list of archetypes present in this descriptor.
-fn hasStage(
+pub fn hasStage(
 	comptime self: Descriptor,
 	comptime stage: EnumLiteral,
 ) bool {
 	return std.mem.indexOfScalar(EnumLiteral, self.stages, stage);
+}
+
+//#endregion
+
+//#region Object index in a descriptor
+
+/// Finds the index of the given component. 
+/// Returns null if the component wasnt found.
+pub fn getComponentIndex(
+	comptime self: Descriptor,
+	comptime Component: type,
+) ?usize {
+	return std.mem.indexOfScalar(type, self.components, Component);
+}
+
+/// Finds the index of the given resource. 
+/// Returns null if the resource wasnt found.
+pub fn getResourceIndex(
+	comptime self: Descriptor,
+	comptime Resource: type,
+) ?usize {
+	return std.mem.indexOfScalar(type, self.resources, Resource);
+}
+
+/// Finds the index of the given event. 
+/// Returns null if the event wasnt found.
+pub fn getEventIndex(
+	comptime self: Descriptor,
+	comptime Event: type,
+) ?usize {
+	return std.mem.indexOfScalar(self, self.events, Event);
+}
+
+/// Finds the index of the given archetype. 
+/// Returns null if the archetype wasnt found.
+pub fn getArchetypeIndex(
+	comptime self: Descriptor,
+	comptime archetype: anytype
+) ?usize {
+	for( self.architypes, 0.. ) |arch, i| {
+		if( std.mem.eql(type, arch, archetype) )
+			return i;
+	}
+
+	return null;
 }
 
 //#endregion
