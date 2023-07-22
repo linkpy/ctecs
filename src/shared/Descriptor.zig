@@ -1,7 +1,9 @@
 const std = @import("std");
 const meta = @import("meta.zig");
+const indices = @import("indices.zig");
 
 const EnumLiteral = meta.EnumLiteral;
+const Entity = indices.Entity;
 const Descriptor = @This();
 
 plugins: []const type = &.{},
@@ -354,6 +356,32 @@ fn validateArchetypeCoherency(
 			}
 		}
 	}
+}
+
+//#endregion
+
+//#region Component infos
+
+/// Checks if the given component type contains a reference to an entity.
+/// 
+/// Only supports structures, and wont check substructures if any.
+pub fn isReferencingEntity(
+	comptime Component: type
+) bool {
+	const info = @typeInfo(Component);
+
+	if( info != .Struct ) 
+		return false;
+
+	for( info.Struct.field ) |field| {
+		switch(field.type) {
+			Entity => return true,
+			?Entity => return true,
+			else => {}
+		}
+	}
+
+	return false;
 }
 
 //#endregion
